@@ -1,0 +1,20 @@
+server:
+  port: 8084
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: ms-digitalfix-report
+
+digitalfix:
+  services:
+    workorders-url: ${WORKORDERS_URL:http://localhost:8082}
+  report:
+    zone: America/Santiago
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
