@@ -1,5 +1,7 @@
 # ms-digitalfix-report (puerto 8084)
 
+[![CI](https://github.com/DigitalFix-Grupo12/ms-digitalfix-report/actions/workflows/ci.yml/badge.svg)](https://github.com/DigitalFix-Grupo12/ms-digitalfix-report/actions/workflows/ci.yml)
+
 KPIs calculados en linea a partir de las ordenes reales de `ms-digitalfix-workorders`
 (ordenes por hora, tiempo promedio de resolucion, ordenes activas, conteo por estado y serie temporal).
 
