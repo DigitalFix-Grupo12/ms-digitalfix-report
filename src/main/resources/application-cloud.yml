@@ -1,0 +1,22 @@
+# Perfil "cloud": proyeccion en Amazon RDS PostgreSQL, schema propio (report).
+# Se activa con SPRING_PROFILES_ACTIVE=cloud. Credenciales desde SSM (variables de entorno).
+# Con la proyeccion en una BD compartida se pueden levantar 2+ instancias del grupo
+# report-kpis: Kafka les reparte las 3 particiones y todas ven los mismos KPIs.
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME:digitalfix}?currentSchema=report&sslmode=require
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 1
+      connection-timeout: 10000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: report
+        hbm2ddl:
+          create_namespaces: true

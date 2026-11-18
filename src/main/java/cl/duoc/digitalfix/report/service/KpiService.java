@@ -1,6 +1,5 @@
 package cl.duoc.digitalfix.report.service;
 
-import cl.duoc.digitalfix.report.client.WorkOrdersClient;
 import cl.duoc.digitalfix.report.client.WorkOrdersClient.WorkOrderView;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -12,18 +11,22 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/** Calcula KPIs a partir de las ordenes reales de ms-digitalfix-workorders. */
+/**
+ * Calcula KPIs desde la proyeccion local de ordenes, que se mantiene al dia con
+ * los eventos de Kafka (workorders.events). No llama a workorders en cada consulta:
+ * reporteria no bloquea ni carga al core (requisito del caso).
+ */
 @Service
 public class KpiService {
 
     private static final Set<String> FINALES = Set.of("CERRADA", "CANCELADA");
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("dd-MM");
 
-    private final WorkOrdersClient workOrders;
+    private final OrderViews workOrders;
     private final ZoneId zone;
     private final Clock clock;
 
-    public KpiService(WorkOrdersClient workOrders,
+    public KpiService(OrderViews workOrders,
                       @Value("${digitalfix.report.zone:America/Santiago}") String zone) {
         this.workOrders = workOrders;
         this.zone = ZoneId.of(zone);

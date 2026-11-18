@@ -1,8 +1,8 @@
 package cl.duoc.digitalfix.report;
 
-import cl.duoc.digitalfix.report.client.WorkOrdersClient;
 import cl.duoc.digitalfix.report.client.WorkOrdersClient.WorkOrderView;
 import cl.duoc.digitalfix.report.service.KpiService;
+import cl.duoc.digitalfix.report.service.OrderViews;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,10 +16,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/** Calculo de KPIs con el cliente de workorders simulado (sin red). */
+/** Calculo de KPIs con la proyeccion simulada (sin BD ni Kafka). */
 class KpiServiceTest {
 
-    private final WorkOrdersClient client = mock(WorkOrdersClient.class);
+    private final OrderViews client = mock(OrderViews.class);
     private final KpiService service = new KpiService(client, "America/Santiago");
 
     @Test

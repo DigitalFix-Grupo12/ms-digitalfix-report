@@ -6,12 +6,72 @@ server:
 spring:
   application:
     name: ms-digitalfix-report
+  # Proyeccion local de ordenes (read model). En la nube: perfil "cloud" (RDS, schema report)
+  datasource:
+    url: jdbc:h2:mem:report;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+  # Cliente Kafka (comun). Deserializador tipado, errores y DLT: messaging.config.KafkaConsumerConfig
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092,localhost:9093,localhost:9094}
+    client-id: ms-digitalfix-report
+    consumer:
+      group-id: ${digitalfix.kafka.consumer-group}
+      # Grupo nuevo: reconstruye la proyeccion desde el inicio de la retencion (7 dias)
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      isolation-level: read_committed
+      max-poll-records: 100
+      properties:
+        partition.assignment.strategy: org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+        session.timeout.ms: 15000
+        heartbeat.interval.ms: 5000
+        max.poll.interval.ms: 300000
+        allow.auto.create.topics: false
+    producer:
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        delivery.timeout.ms: 30000
 
 digitalfix:
   services:
+    # Solo para el snapshot inicial: si la proyeccion esta vacia al arrancar
     workorders-url: ${WORKORDERS_URL:http://localhost:8082}
   report:
     zone: America/Santiago
+    # Orden activa sin cambios por mas de este tiempo -> alerta "SLA en riesgo"
+    sla-minutes: ${REPORT_SLA_MINUTES:30}
+    sla-check-interval-ms: 30000
+    snapshot-on-startup: ${REPORT_SNAPSHOT:true}
+  kafka:
+    listeners-enabled: true
+    # Grupo propio: lee workorders.events a su ritmo, independiente de audit-timeline
+    consumer-group: report-kpis
+    # = particiones del topico: un hilo por particion (balanceo dentro del grupo)
+    concurrency: 3
+    topics:
+      workorder-events: workorders.events
+    dlt-suffix: .DLT
+    retry:
+      max-attempts: 3
+      initial-interval: 1s
+      multiplier: 2.0
+      max-interval: 10s
+
+logging:
+  pattern:
+    level: "%5p [evt=%X{eventId:-} trace=%X{traceId:-} %X{topic:-}-%X{partition:-}@%X{offset:-}]"
 
 management:
   endpoints:
